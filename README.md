@@ -23,7 +23,12 @@ $ uv run main.py
    - Host: `$HORIZON_PG_HOST` or `--horizon-pg-host`
    - Database Name: `$HORIZON_PG_DB_NAME` or `--horizon-pg-db-name`
 
-To use environment variables, create a `.env` file. Example minimal required configuration is in `.env.template`
+### Env Files
+
+- `.env.forwarder.template` - Example minimal config for the forwarder
+- `.env.forwarder` - Actual forwarder config
+- `.env.redpanda` - Redpanda config
+- `.env.horizon-pg` - Postgres config for Horizon
 
 ### CLI Usage
 ```
