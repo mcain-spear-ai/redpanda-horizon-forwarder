@@ -2,7 +2,8 @@ import json
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from confluent_kafka import Consumer
+import msgpack
+from confluent_kafka import Consumer, Message
 from horizon_data_core.api import initialize_sdk
 from horizon_data_core.base_types import DataRow, DataStream, Entity, MetadataRow
 from horizon_data_core.client import PostgresClient
@@ -80,8 +81,7 @@ def message_forward_loop(
         if serialized_message is None:
             continue
 
-        # Assuming the Redpanda message is UTF-8 encoded JSON bytes
-        message = json.loads(serialized_message.value().decode("utf-8"))
+        message = deserialize_message(serialized_message)
 
         now = datetime.now()
 
@@ -110,6 +110,14 @@ def message_forward_loop(
         sdk_metadata_row = sdk.create_metadata_row(metadata_row)
         if debug:
             print(f"Created metadata row: {sdk_metadata_row}")
+
+
+def deserialize_message(message: Message):
+    message_bytes = message.value()
+    deserialized_message = msgpack.unpackb(
+        message_bytes, raw=False, strict_map_key=False
+    )
+    return deserialized_message
 
 
 def setup_horizon(
