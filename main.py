@@ -73,7 +73,7 @@ def main(
     horizon_pg_db_name: str = Option(
         ..., envvar="PG_DB_NAME", help="Horizon - Postgres database name"
     ),
-    debug: bool = Option(False, envvar="DEBUG", help="Print debug info"),
+    debug: bool = Option(True, envvar="DEBUG", help="Print debug info"),
 ):
     if horizon_organization_id is None:
         horizon_organization_id = uuid4()
