@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+
+  forwarder:
+    build: .
+    image: redpanda-horizon-forwarder
+    container_name: redpanda-horizon-forwarder
+    env_file:
+      - .env.forwarder
+    depends_on:
+      - redpanda
+      - horizon-postgres
+
+  redpanda:
+    image: docker.redpanda.com/redpanda/redpanda:v23.1.6
+    container_name: redpanda
+    env_file:
+      - .env.redpanda
+    ports:
+      - "9092:9092"
+      - "9644:9644" # Admin API
+
+  # Existing Horizon `docker-compose.yaml`
+  # https://github.com/spear-ai/horizon/blob/main/packages/horizon-data-pipeline/docker-compose.yaml
+  horizon-postgres:
+    image: postgres:16
+    container_name: horizon-postgres
+    env_file:
+      - .env.horizon-pg
+    ports:
+      - "5432:5432"
+    volumes:
+      - horizon-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  horizon-postgres-data:

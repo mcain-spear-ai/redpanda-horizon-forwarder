@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv (32-bit compatible)
+# Install uv
 RUN pip install --no-cache-dir uv
 
 WORKDIR /app
@@ -25,4 +25,4 @@ RUN uv sync --no-dev --frozen
 # Copy application code
 COPY . .
 
-CMD ["uv", "run", "python", "main.py"]
+CMD ["uv", "run", "main.py"]
