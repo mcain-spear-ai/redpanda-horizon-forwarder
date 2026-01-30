@@ -8,51 +8,75 @@ from horizon_data_core.base_types import DataRow, DataStream, Entity, MetadataRo
 from horizon_data_core.client import PostgresClient
 from horizon_data_core.helpers import name_to_uuid
 from horizon_data_core.sdk import HorizonSDK
+from typer import Option, Typer
 
-DEFAULT_POSTGRES_PORT: int = 5432
 DEFAULT_REDPANDA_POLL_TIMEOUT: float = -1
+DEFAULT_ENTITY_NAME: str = "Unnamed Entity"
 DEFAULT_ICEBERG_BATCH_SIZE = 32
 DEFAULT_MAX_RETRIES = 10
-
-ENTITY_NAME = "Entity"
-
-POSTGRES_USER: str = "user"
-POSTGRES_PASSWORD: str = "password"
-POSTGRES_HOST: str = "host"
-POSTGRES_PORT: int = DEFAULT_POSTGRES_PORT
-POSTGRES_DB_NAME: str = "database"
-
-REDPANDA_BOOTSTRAP_SERVERS: str = ""
-REDPANDA_GROUP_ID: str = ""
-REDPANDA_TOPIC_NAMES = list[str] = []
-REDPANDA_POLL_TIMEOUT: float = DEFAULT_REDPANDA_POLL_TIMEOUT
-
-PRINT_CREATED_ROWS = True
+DEFAULT_POSTGRES_PORT: int = 5432
 
 
-def main():
+app = Typer(help="Forwards messages from Redpanda to Horizon")
+
+
+@app.callback(invoke_without_command=True)
+def run(
+    redpanda_bootstrap_servers: str = Option(..., help="Redpanda - Bootstrap servers"),
+    redpanda_group_id: str = Option(..., help="Redpanda - Group ID"),
+    redpanda_topic_names: list[str] = Option(
+        ..., "--redpanda-topic-name", help="Redpanda - Topic name"
+    ),
+    redpanda_poll_timeout: float = Option(
+        DEFAULT_REDPANDA_POLL_TIMEOUT, help="Redpanda - Poll timeout"
+    ),
+    entity_name: str = Option(DEFAULT_ENTITY_NAME, help="Horizon - Entity name"),
+    organization_id: UUID | None = Option(None, help="Horizon - Organization ID"),
+    iceberg_batch_size: int = Option(
+        DEFAULT_ICEBERG_BATCH_SIZE, help="Horizon - Iceberg batch size"
+    ),
+    max_retries: int = Option(DEFAULT_MAX_RETRIES, help="Horizon - Iceberg batch size"),
+    pg_user: str = Option(..., help="Postgres - User"),
+    # TODO: Fix ASAP
+    pg_password: str = Option(..., help="Postgres - Password"),
+    pg_host: str = Option(..., help="Postgres - Host"),
+    pg_port: int = Option(DEFAULT_POSTGRES_PORT, help="Postgres - Port"),
+    pg_db_name: str = Option(..., help="Postgres - Database name"),
+    debug: bool = Option(False, help="Print debug info"),
+):
+    if organization_id is None:
+        organization_id = uuid4()
+
     redpanda_consumer = setup_redpanda_consumer(
-        REDPANDA_BOOTSTRAP_SERVERS, REDPANDA_GROUP_ID, REDPANDA_TOPIC_NAMES
+        redpanda_bootstrap_servers, redpanda_group_id, redpanda_topic_names
     )
 
     pg_client = PostgresClient(
-        user=POSTGRES_USER,
-        password=POSTGRES_PASSWORD,
-        host=POSTGRES_HOST,
-        port=POSTGRES_PORT,
-        database=POSTGRES_DB_NAME,
+        user=pg_user,
+        password=pg_password,
+        host=pg_host,
+        port=pg_port,
+        database=pg_db_name,
     )
-    data_stream, sdk = setup_horizon(pg_client, ENTITY_NAME)
+    data_stream, sdk = setup_horizon(
+        pg_client, entity_name, organization_id, iceberg_batch_size, max_retries
+    )
 
-    message_forward_loop(redpanda_consumer, data_stream, sdk)
+    message_forward_loop(
+        redpanda_consumer, redpanda_poll_timeout, data_stream, sdk, debug
+    )
 
 
 def message_forward_loop(
-    redpanda_consumer: Consumer, data_stream: DataStream, sdk: HorizonSDK
+    redpanda_consumer: Consumer,
+    redpanda_poll_timeout: float,
+    data_stream: DataStream,
+    sdk: HorizonSDK,
+    debug: bool,
 ) -> None:
     assert data_stream.id is not None
     while True:
-        serialized_message = redpanda_consumer.poll(REDPANDA_POLL_TIMEOUT)
+        serialized_message = redpanda_consumer.poll(redpanda_poll_timeout)
         if serialized_message is None:
             continue
 
@@ -71,7 +95,7 @@ def message_forward_loop(
             vector_end_bound=message.get("vector_end_bound"),
         )
         sdk_data_row = sdk.create_data_row(data_row)
-        if PRINT_CREATED_ROWS:
+        if debug:
             print(f"Created data row: {sdk_data_row}")
 
         metadata_row = MetadataRow(
@@ -84,16 +108,16 @@ def message_forward_loop(
             heading=message.get("heading"),
         )
         sdk_metadata_row = sdk.create_metadata_row(metadata_row)
-        if PRINT_CREATED_ROWS:
+        if debug:
             print(f"Created metadata row: {sdk_metadata_row}")
 
 
 def setup_horizon(
     pg_client: PostgresClient,
     entity_name: str,
-    organization_id: UUID = uuid4(),
-    iceberg_batch_size: int = DEFAULT_ICEBERG_BATCH_SIZE,
-    max_retries: int = DEFAULT_MAX_RETRIES,
+    organization_id: UUID,
+    iceberg_batch_size: int,
+    max_retries: int,
 ) -> tuple[DataStream, HorizonSDK]:
     sdk = initialize_sdk(
         pg_client,
@@ -139,4 +163,4 @@ def setup_redpanda_consumer(
 
 
 if __name__ == "__main__":
-    main()
+    app()
