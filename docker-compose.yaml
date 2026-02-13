@@ -4,6 +4,7 @@ services:
     build: .
     image: redpanda-horizon-forwarder
     container_name: redpanda-horizon-forwarder
+    platform: linux/amd64
     env_file:
       - .env.forwarder
     depends_on:
@@ -13,6 +14,7 @@ services:
   redpanda:
     image: docker.redpanda.com/redpanda/redpanda:v23.1.6
     container_name: redpanda
+    platform: linux/amd64
     env_file:
       - .env.redpanda
     ports:
@@ -24,6 +26,7 @@ services:
   horizon-postgres:
     image: postgres:16
     container_name: horizon-postgres
+    platform: linux/amd64
     env_file:
       - .env.horizon-pg
     ports:
