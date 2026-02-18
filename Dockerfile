@@ -1,3 +1,5 @@
+# For a guaranteed fresh build and horizon-data-core 4.4.0 verification, use:
+#   ./scripts/build-and-verify.sh
 FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1
@@ -20,7 +22,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 
 # Install dependencies using uv
-RUN uv sync --no-dev --frozen
+RUN uv sync
 
 # Copy application code
 COPY . .

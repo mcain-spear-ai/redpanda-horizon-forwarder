@@ -2,19 +2,23 @@ services:
 
   forwarder:
     build: .
-    image: redpanda-horizon-forwarder
+    image: redpanda-horizon-forwarder:4.4.0
     container_name: redpanda-horizon-forwarder
-    env_file:
-      - .env.forwarder
+    platform: linux/amd64
+    # env_file:
+    #   - .env.forwarder
     depends_on:
       - redpanda
       - horizon-postgres
 
+    command: ["sleep", "infinity"]
+
   redpanda:
     image: docker.redpanda.com/redpanda/redpanda:v23.1.6
     container_name: redpanda
-    env_file:
-      - .env.redpanda
+    platform: linux/amd64
+    # env_file:
+    #   - .env.redpanda
     ports:
       - "9092:9092"
       - "9644:9644" # Admin API
@@ -24,8 +28,9 @@ services:
   horizon-postgres:
     image: postgres:16
     container_name: horizon-postgres
-    env_file:
-      - .env.horizon-pg
+    platform: linux/amd64
+    # env_file:
+    #   - .env.horizon-pg
     ports:
       - "5432:5432"
     volumes:
