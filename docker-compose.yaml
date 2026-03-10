@@ -2,7 +2,7 @@ services:
 
   forwarder:
     build: .
-    image: redpanda-horizon-forwarder:4.4.0
+    image: redpanda-horizon-forwarder:4.6.0
     container_name: redpanda-horizon-forwarder
     platform: linux/amd64
     # env_file:

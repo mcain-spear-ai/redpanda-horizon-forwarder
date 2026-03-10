@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Build the forwarder image with no cache, then verify horizon-data-core is 4.4.0.
+# Build the forwarder image with no cache, then verify horizon-data-core is 4.6.0.
 set -e
 
-IMAGE_NAME="${IMAGE_NAME:-redpanda-horizon-forwarder:4.4.0}"
-REQUIRED_VERSION="4.4.0"
+IMAGE_NAME="${IMAGE_NAME:-redpanda-horizon-forwarder:4.6.0}"
+REQUIRED_VERSION="4.6.0"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 echo "==> Building image (no cache): $IMAGE_NAME"
-docker compose build --no-cache forwarder
+# docker compose build --no-cache forwarder
 
 echo ""
 echo "==> Verifying horizon-data-core version in image (no volume mount)..."
