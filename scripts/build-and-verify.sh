@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Build the forwarder image with no cache, then verify horizon-data-core is 4.6.0.
+# Build the forwarder image with no cache, then verify horizon-data-core is 5.1.0.
 set -e
 
-IMAGE_NAME="${IMAGE_NAME:-redpanda-horizon-forwarder:4.6.0}"
-REQUIRED_VERSION="4.6.0"
+IMAGE_NAME="${IMAGE_NAME:-redpanda-horizon-forwarder:5.1.0}"
+REQUIRED_VERSION="5.1.0"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
