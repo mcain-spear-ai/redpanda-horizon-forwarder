@@ -10,7 +10,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 echo "==> Building image (no cache): $IMAGE_NAME"
-# docker compose build --no-cache forwarder
+docker compose build --no-cache forwarder
 
 echo ""
 echo "==> Verifying horizon-data-core version in image (no volume mount)..."
